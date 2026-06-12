@@ -212,6 +212,7 @@ body::before {
 }
 
 @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
 @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-track{background:var(--bg)}
@@ -223,6 +224,9 @@ body::before {
   <p class="page-eyebrow">TB 폐쇄병동 · 단서 관리</p>
   <h1 class="page-title">단서 현황</h1>
   <p class="page-sub">총 49개의 단서 · 인물별 최초 소지 1개 · 획득 현황 추적</p>
+  <div class="sync-status" id="sync-status" style="font-size:11px;color:var(--green2);margin-bottom:24px;display:flex;align-items:center;gap:6px;">
+    <span class="sync-dot" style="width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;"></span> 연결 중...
+  </div>
   <div style="background:rgba(124,106,255,0.07);border:1px solid rgba(124,106,255,0.25);border-radius:2px;padding:14px 20px;margin-bottom:32px;font-size:13px;color:#c084fc;line-height:1.8;">
     💊 투약 단계에서 사용할 수 있는 약물 단서일 경우 <strong>[약물]</strong> 이라는 표식이 있으며, 획득 시 <strong>[약물]</strong> 임이 모두에게 공개됩니다.
   </div>
@@ -267,7 +271,24 @@ body::before {
   </div>
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+// ===== FIREBASE INIT =====
+const firebaseConfig = {
+  apiKey: "AIzaSyBCP8PnY9Zinvt7DynBkjw5u3TkiTNDZEE",
+  authDomain: "locked-ward.firebaseapp.com",
+  databaseURL: "https://locked-ward-default-rtdb.firebaseio.com",
+  projectId: "locked-ward",
+  storageBucket: "locked-ward.firebasestorage.app",
+  messagingSenderId: "966960188835",
+  appId: "1:966960188835:web:8b916d5a5d45ca89369e16",
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const stateRef = ref(db, "clues_state");
+
 // ===== DATA =====
 const CHARS = ['민환자','이의사','유환자','김간호사','한경비','하환자','김약사'];
 
@@ -346,20 +367,31 @@ const OWNER_META = {
 
 const SECTION_OWNERS = ['민환자','이의사','유환자','김간호사','한경비','하환자','김약사','복도','김사연'];
 
-// ===== STATE =====
-const STORAGE_KEY = 'tb_clues_v1';
-let state = loadState();
+// ===== STATE (Firebase 공용 상태) =====
+const DEFAULT_STATE = { initial: {}, collected: {}, drugRevealed: [], drugUsed: [] };
+let state = DEFAULT_STATE;
 
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch(e){}
-  return { initial: {}, collected: {}, drugRevealed: [], drugUsed: [] };
+// Firebase 실시간 감시: 누군가 바꾸면 전원 화면이 즉시 갱신됨
+onValue(stateRef, (snapshot) => {
+  const data = snapshot.val();
+  state = data ? normalizeState(data) : DEFAULT_STATE;
+  render();
+  const syncEl = document.getElementById('sync-status');
+  if (syncEl) syncEl.innerHTML = '<span class="sync-dot" style="width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;"></span> 모든 참여자와 실시간으로 공유됩니다';
+});
+
+function normalizeState(data) {
+  return {
+    initial: data.initial || {},
+    collected: data.collected || {},
+    drugRevealed: data.drugRevealed || [],
+    drugUsed: data.drugUsed || [],
+  };
 }
 
-function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+// state 전체를 Firebase에 덮어쓰기 (이게 곧 saveState)
+async function saveState() {
+  await set(stateRef, state);
 }
 
 // ===== RENDER =====
@@ -805,7 +837,7 @@ function askReset() {
 }
 
 // ===== INIT =====
-render();
+// (onValue 리스너가 최초 1회 자동으로 render() 호출함)
 </script>
 <footer style="margin-top:80px;padding:32px 24px;border-top:1px solid #2a2a3e;text-align:center;font-size:10px;color:#44445a;line-height:2;letter-spacing:0.3px;">본 작품 《폐쇄병동: 잠들지 않는 밤》의 시나리오, 텍스트, 시스템 구성 및 디자인을 포함한 모든 저작권은 원저작자 오냥냥에게 있습니다.<br>저작권법의 보호를 받는 저작물이므로, 저작권자의 서면 동의 없는 무단 복제, 전재, 배포, 수정 및 상업적 이용(유료 스트리밍, 상업 매장 내 무단 사용)등을 절대 금합니다.<br><br>스포일러 주의: 머더 미스터리 장르 특성상, 본 작품은 단 한 번만 플레이할 수 있는 일회성 게임입니다.<br>아직 플레이하지 않은 다른 분들의 온전한 재미를 위해 게임 내 핵심 기믹, 진범의 정체, 반전 등의 스포일러 요소를<br>인터넷, SNS, 공개 커뮤니티 등에 노출하지 않도록 자제 부탁드립니다.<br><br>Copyright 2026. 오냥냥 All rights reserved.<br><br>문의 younakim.kr01@gmail.com</footer>
 </body>
