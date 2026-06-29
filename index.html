@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>단서 현황 · 폐쇄병동</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #13131e;
+  --surface2: #1a1a28;
+  --border: #2a2a3e;
+  --accent: #7c6aff;
+  --accent2: #c084fc;
+  --red: #ef4444;
+  --red2: #fca5a5;
+  --green: #22c55e;
+  --green2: #86efac;
+  --text: #e8e8f0;
+  --muted: #8888aa;
+  --dim: #44445a;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  min-height: 100vh;
+  padding: 40px 20px 80px;
+}
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background: radial-gradient(ellipse at 20% 10%, rgba(124,106,255,0.06) 0%, transparent 55%),
+              radial-gradient(ellipse at 80% 90%, rgba(239,68,68,0.04) 0%, transparent 55%);
+  pointer-events:none;
+}
+
+.wrap { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; }
+
+/* HEADER */
+.page-eyebrow { font-size:10px; letter-spacing:4px; color:var(--accent); margin-bottom:10px; }
+.page-title { font-family:'Noto Serif KR',serif; font-size:28px; font-weight:700; margin-bottom:6px; }
+.page-sub { font-size:12px; color:var(--muted); margin-bottom:40px; }
+
+/* SECTION TITLE */
+.sec-title {
+  font-size:10px; letter-spacing:3px; color:var(--accent);
+  margin-bottom:16px; margin-top:40px;
+  display:flex; align-items:center; gap:10px;
+}
+.sec-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+/* OWNER BLOCK */
+.owner-block { margin-bottom:32px; }
+.owner-header {
+  display:flex; align-items:center; gap:10px;
+  margin-bottom:12px;
+}
+.owner-name { font-family:'Noto Serif KR',serif; font-size:16px; font-weight:600; }
+.owner-badge {
+  font-size:10px; padding:2px 8px; border-radius:20px;
+}
+.badge-patient { background:rgba(239,68,68,0.15); color:#fca5a5; }
+.badge-medical { background:rgba(124,106,255,0.15); color:#c084fc; }
+.badge-other   { background:rgba(100,100,120,0.2); color:var(--muted); }
+.badge-special { background:rgba(250,204,21,0.12); color:#fde68a; }
+
+.clue-grid {
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap:8px;
+}
+
+/* CLUE CARD */
+.clue-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius:2px;
+  padding:14px 16px;
+  cursor:pointer;
+  transition: all 0.2s;
+  position:relative;
+}
+.clue-card:hover { border-color:var(--accent); }
+.clue-card.locked {
+  opacity:0.45;
+  cursor:not-allowed;
+  border-color:var(--border) !important;
+}
+.clue-card.initial {
+  border-left:3px solid var(--accent);
+  opacity:1;
+  cursor:not-allowed;
+}
+.clue-card.collected {
+  border-left:3px solid var(--green);
+  background: rgba(34,197,94,0.04);
+}
+.clue-label { font-size:10px; color:var(--dim); margin-bottom:5px; letter-spacing:1px; }
+.clue-name  { font-size:13px; font-weight:500; margin-bottom:4px; line-height:1.4; }
+.clue-desc  { font-size:11px; color:var(--muted); line-height:1.6; }
+.clue-drug  { border-top:1px solid rgba(124,106,255,0.2); margin-top:8px; padding-top:8px; font-size:10px; color:var(--accent2); letter-spacing:1px; }
+
+.clue-status {
+  position:absolute; top:10px; right:10px;
+  font-size:10px; padding:2px 7px; border-radius:20px;
+}
+.status-initial { background:rgba(124,106,255,0.15); color:var(--accent2); }
+.status-collected { background:rgba(34,197,94,0.15); color:var(--green2); }
+
+.collector-tag {
+  margin-top:8px;
+  font-size:11px;
+  color:var(--green2);
+  display:flex; align-items:center; gap:4px;
+}
+
+/* SUMMARY TABLE */
+.summary-wrap { margin-top:48px; }
+.summary-table { width:100%; border-collapse:collapse; }
+.summary-table th {
+  font-size:10px; letter-spacing:2px; color:var(--accent);
+  padding:10px 14px; text-align:left;
+  border-bottom:1px solid var(--border);
+  font-weight:500;
+}
+.summary-table td {
+  padding:12px 14px;
+  font-size:12px;
+  border-bottom:1px solid rgba(42,42,62,0.5);
+  vertical-align:top;
+}
+.summary-table tr:last-child td { border-bottom:none; }
+.summary-name { font-weight:500; white-space:nowrap; }
+.clue-tags { display:flex; flex-wrap:wrap; gap:5px; }
+.clue-tag {
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:2px; padding:2px 8px; font-size:11px; color:var(--muted);
+}
+.clue-tag.initial-tag { border-color:var(--accent); color:var(--accent2); }
+.clue-tag.collected-tag { border-color:var(--green); color:var(--green2); }
+.empty-tag { font-size:11px; color:var(--dim); }
+
+/* MODAL */
+.modal-overlay {
+  position:fixed; inset:0;
+  background:rgba(0,0,0,0.75);
+  display:flex; align-items:center; justify-content:center;
+  z-index:1000; padding:20px;
+  animation: fadeIn 0.15s;
+}
+.modal-box {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:2px;
+  padding:28px;
+  max-width:400px; width:100%;
+  max-height:85vh;
+  display:flex; flex-direction:column;
+  animation: fadeUp 0.2s;
+}
+.modal-title { font-family:'Noto Serif KR',serif; font-size:17px; font-weight:600; margin-bottom:10px; flex-shrink:0; }
+.modal-desc  { font-size:13px; color:#bbbbd0; line-height:1.8; margin-bottom:20px; overflow-y:auto; flex:1; min-height:0; }
+.modal-clue-name { color:var(--accent2); font-weight:500; }
+.modal-btns { display:flex; gap:8px; justify-content:flex-end; }
+.modal-cancel {
+  background:none; border:1px solid var(--border);
+  color:var(--muted); padding:9px 18px; border-radius:2px;
+  cursor:pointer; font-family:'Noto Sans KR'; font-size:13px;
+  transition:all 0.2s;
+}
+.modal-cancel:hover { border-color:var(--text); color:var(--text); }
+.modal-confirm {
+  background:var(--accent); border:none;
+  color:white; padding:9px 18px; border-radius:2px;
+  cursor:pointer; font-family:'Noto Sans KR'; font-size:13px;
+  transition:opacity 0.2s;
+}
+.modal-confirm:hover { opacity:0.85; }
+.modal-confirm.danger { background:var(--red); }
+
+/* COLLECTOR SELECT */
+.collector-select {
+  display:flex; flex-wrap:wrap; gap:6px; margin-bottom:20px;
+}
+.col-opt {
+  background:var(--surface2); border:1px solid var(--border);
+  color:var(--muted); padding:7px 14px; border-radius:2px;
+  cursor:pointer; font-family:'Noto Sans KR'; font-size:12px;
+  transition:all 0.2s;
+}
+.col-opt:hover { border-color:var(--accent); color:var(--text); }
+.col-opt.selected { background:rgba(124,106,255,0.15); border-color:var(--accent); color:var(--accent2); }
+
+/* RESET BTN */
+.reset-area { margin-top:60px; padding-top:32px; border-top:1px solid var(--border); }
+.reset-label { font-size:11px; color:var(--dim); margin-bottom:12px; }
+.reset-btn {
+  background:none; border:1px solid var(--red);
+  color:var(--red); padding:10px 20px; border-radius:2px;
+  cursor:pointer; font-family:'Noto Sans KR'; font-size:13px;
+  transition:all 0.2s;
+}
+.reset-btn:hover { background:rgba(239,68,68,0.08); }
+
+/* COUNT BADGE */
+.count-badge {
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:20px; padding:2px 10px;
+  font-size:11px; color:var(--muted);
+}
+
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="page-eyebrow">TB 폐쇄병동 · 단서 관리</p>
+  <h1 class="page-title">단서 현황</h1>
+  <p class="page-sub">총 49개의 단서 · 인물별 최초 소지 1개 · 획득 현황 추적</p>
+  <div class="sync-status" id="sync-status" style="font-size:11px;color:var(--green2);margin-bottom:24px;display:flex;align-items:center;gap:6px;">
+    <span class="sync-dot" style="width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;"></span> 연결 중...
+  </div>
+  <div style="background:rgba(124,106,255,0.07);border:1px solid rgba(124,106,255,0.25);border-radius:2px;padding:14px 20px;margin-bottom:16px;font-size:13px;color:#c084fc;line-height:1.8;">
+    🔎 탐색할 수 있는 단서일 경우 <strong>[탐색]</strong> 이라는 표식이 있으며, 획득 시 <strong>[탐색]</strong> 임이 모두에게 공개됩니다.<br>
+    💊 복용할 수 있는 단서일 경우 <strong>[약물]</strong> 이라는 표식이 있으며, 획득 시 <strong>[약물]</strong> 임이 모두에게 공개됩니다.
+  </div>
+
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:16px 20px;margin-bottom:12px;">
+    <p style="font-size:13px;font-weight:700;color:var(--accent2);margin-bottom:8px;">탐색 규칙 상세</p>
+    <p style="font-size:12px;color:var(--muted);line-height:1.8;">
+      모든 인물은 각 페이즈 중 1번, 소지하고 있는 [탐색] 단서 1개를 탐색하여 더 자세한 정보를 확인 가능<br><br>
+      비밀번호가 걸린 [탐색] 단서의 경우 비밀번호를 맞출 때까지 도전할 수 있으며, 맞출 경우 [탐색] 기회 사용됨
+    </p>
+  </div>
+
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:16px 20px;margin-bottom:32px;">
+    <p style="font-size:13px;font-weight:700;color:var(--accent2);margin-bottom:8px;">복용 규칙 상세</p>
+    <p style="font-size:12px;color:var(--muted);line-height:1.8;">
+      <strong style="color:var(--text);">환자</strong> (서민혁, 정유림, 윤정하) 들은 각 페이즈 중 1번, 소지하고 있는 [약물] 단서 1개를 복용할 수 있다.<br><br>
+      복용한 [약물] 단서는 게임에서 제거된다.
+    </p>
+  </div>
+
+  <div id="clue-sections"></div>
+
+  <!-- SUMMARY -->
+  <div class="summary-wrap">
+    <div class="sec-title">SUMMARY · 인물별 수집 현황</div>
+    <table class="summary-table">
+      <thead>
+        <tr>
+          <th style="width:90px;">인물</th>
+          <th>최초 소지</th>
+          <th>수집한 단서</th>
+        </tr>
+      </thead>
+      <tbody id="summary-body"></tbody>
+    </table>
+  </div>
+
+  <!-- GUIDE -->
+  <div class="sec-title" style="margin-top:48px;">GUIDE · 사용 안내</div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:2px;padding:16px 20px;">
+    <p style="font-size:12px;color:var(--muted);line-height:1.8;">
+      <strong style="color:var(--text);">[내 단서 보기]</strong>: 인물별 수집 현황에서 자신의 인물을 선택하고 비밀번호를 입력하면, 지금까지 자신이 수집한 모든 단서를 한눈에 확인할 수 있습니다.<br><br>
+      <strong style="color:var(--text);">[탐색]</strong>: [탐색] 단서의 경우 자신의 이름을 클릭해 확인 후 탐색을 진행할 수 있습니다. 비밀번호를 통해 탐색을 진행하는 경우 비밀번호가 맞을 때까지 탐색해볼 수 있습니다.<br><br>
+      <strong style="color:var(--text);">[복용]</strong>: [약물] 단서의 경우 인물별 수집 현황에서 클릭해 복용할 수 있습니다.<br><br>
+      <strong style="color:var(--text);">[양도]</strong>: 인물별 수집 현황에서 자신이 수집한 단서 중 양도할 단서를 클릭해 원하는 인물에게 양도할 수 있습니다.
+    </p>
+  </div>
+
+  <!-- RESET -->
+  <div class="reset-area">
+    <p class="reset-label">GM 전용 · 새 게임 시작 시 모든 단서 기록을 초기화합니다</p>
+    <button class="reset-btn" onclick="askReset()">🗑 새 게임 초기화</button>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-desc" id="modal-desc"></div>
+    <div id="modal-collector" style="display:none;">
+      <p style="font-size:11px;color:var(--accent);letter-spacing:2px;margin-bottom:10px;">획득한 인물 선택</p>
+      <div class="collector-select" id="collector-opts"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal()">취소</button>
+      <button class="modal-confirm" id="modal-confirm-btn">확인</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+// ===== FIREBASE INIT =====
+const firebaseConfig = {
+  apiKey: "AIzaSyBCP8PnY9Zinvt7DynBkjw5u3TkiTNDZEE",
+  authDomain: "locked-ward.firebaseapp.com",
+  databaseURL: "https://locked-ward-default-rtdb.firebaseio.com",
+  projectId: "locked-ward",
+  storageBucket: "locked-ward.firebasestorage.app",
+  messagingSenderId: "966960188835",
+  appId: "1:966960188835:web:8b916d5a5d45ca89369e16",
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const stateRef = ref(db, "clues_state");
+
+// ===== DATA =====
+const ROLE_MAP = {
+  '서민혁': '환자', '정유림': '환자', '윤정하': '환자',
+  '이의준': '의사', '박민규': '간호사', '김서진': '약사', '한경민': '경비'
+};
+const roleLabel = (name) => ROLE_MAP[name] ? ` <span style="font-size:11px;color:var(--muted);font-weight:400;">(${ROLE_MAP[name]})</span>` : '';
+
+const CHARS = ['서민혁','이의준','정유림','박민규','한경민','윤정하','김서진'];
+
+const CLUES = [
+  // 한경민
+  { id:'경비-A', owner:'한경민', slot:'A', name:'오래된 CCTV', desc:'화질이 매우 떨어져 실루엣 외에 얼굴 식별이 어려운 구형 모니터 시스템. 병원 복도와 출입구만 확인 가능하다.', drug:false, explorable:true, exploreType:'password', explorePwType:'today', exploreHint:'날짜를 입력하여 확인할 수 있는 구조이다. 어떤 날짜의 기록을 확인할까? (YYYYMMDD)', exploreText:'인위적으로 기록이 지워져 있다.' },
+  { id:'경비-B', owner:'한경민', slot:'B', name:'알 수 없는 약', desc:'경비실 서랍에서 발견된 약병. 안에는 흰색의 동그란 알약이 들어있다.', drug:true },
+  { id:'경비-C', owner:'한경민', slot:'C', name:'금고', desc:'벽면에 설치된 소형 철제 금고. 금고의 잠금 장치가 복잡해보이지만 지금은 장치가 걸려있지 않다. 열어보니 내부는 완전히 비어있다.', drug:false },
+  { id:'경비-D', owner:'한경민', slot:'D', name:'키박스', desc:'벽에 걸린 병동 전체 열쇠 보관함.', drug:false, explorable:true, exploreType:'free', exploreText:'열쇠 보관함에는 별다른 자물쇠가 보이지 않는다. 열어보니 비상 계단, 옥상, 병동 출입문 열쇠 등 각 이름이 적혀 있지만, 그 아래 열쇠가 걸려 있어야 할 곳에는 아무 것도 없다.' },
+  { id:'경비-E', owner:'한경민', slot:'E', name:'병원 투자자 계약서 복사본', desc:'서류철 사이에 끼워져 있는 병원 설립 및 투자 유치 관련 계약서의 복사본 문서.', drug:false },
+  { id:'경비-F', owner:'한경민', slot:'F', name:'경비원 고용계약서', desc:'경비실 서랍 깊숙한 곳에서 발견된 경비 고용 계약서.', drug:false, explorable:true, exploreType:'free', exploreText:'갑(甲) 란, 고용주 서명란이 공란으로 비어 있다. 날인도, 서명도 없다. 을(乙) 란에는 한경민의 이름이 적혀 있다.' },
+  // 이의준
+  { id:'의사-A', owner:'이의준', slot:'A', name:'열쇠 꾸러미', desc:'의사 가운 안주머니에서 발견된 열쇠 뭉치.', drug:false, explorable:true, exploreType:'free', exploreText:'많은 열쇠가 정리가 안 된 채로 섞여있다. 병동 출입문, 비상계단, 옥상이라 적힌 열쇠가 포함되어 있다.' },
+  { id:'의사-B', owner:'이의준', slot:'B', name:'개인 수첩', desc:'이의준의 필체로 빼곡하게 적힌 전문 의학 메모. 병원 내에서 유통되는 여러 약물의 성분과 부작용에 대한 연구 기록이 주를 이루고 있다.', drug:false },
+  { id:'의사-C', owner:'이의준', slot:'C', name:'윤정하 담당 약', desc:'데스크에 보관된 투약 용기. 네임펜으로 \'윤정하\'라고 이름이 꾹꾹 눌러 적혀 있다.', drug:true },
+  { id:'의사-D', owner:'이의준', slot:'D', name:'윤정하 상태 일지', desc:'이의준이 보관하는 윤정하의 상세 관찰 기록지. 그녀의 정서적 변화가 날짜별로 기록되어 있다.', drug:false },
+  { id:'의사-E', owner:'이의준', slot:'E', name:'알 수 없는 약', desc:'서랍 구석 조심스럽게 보관된, 기묘한 초록색 빛을 띠는 알약. 정식 유통이나 제조된 약품이 아닌 것 같다.', drug:true },
+  { id:'의사-F', owner:'이의준', slot:'F', name:'깔끔히 정리된 짐', desc:'침대 옆에 놓인 커다란 여행용 가방. 옷가지와 중요한 개인 소지품들이 당장이라도 이 병원을 떠날 것처럼 깔끔하게 패킹되어 정리되어 있다.', drug:false },
+  // 박민규
+  { id:'간호-A', owner:'박민규', slot:'A', name:'알 수 없는 약', desc:'작은 약병에 담긴 동그란 모양의 하얀색 알약. 아무런 성분 표시도, 라벨도 붙어있지 않다.', drug:true },
+  { id:'간호-B', owner:'박민규', slot:'B', name:'다른 병원의 낡은 명함', desc:'서랍 깊숙한 곳에서 발견된 빛바랜 명함.', drug:false, explorable:true, exploreType:'free', exploreText:'유명 대형 병원인\'00병원\' 소속의 간호사 명함이다. 꽤 오래되어 보인다.' },
+  { id:'간호-C', owner:'박민규', slot:'C', name:'알 수 없는 약', desc:'따로 보관된, 기묘한 초록색 빛을 띠는 알약. 아무런 성분 표시도, 라벨도 붙어있지 않다.', drug:true },
+  { id:'간호-D', owner:'박민규', slot:'D', name:'쪽지', desc:'데스크 구석에서 발견된 쪽지. 김사연 간호사의 필체로 "이따 봐"라는 짧은 문구가 적혀 있다. 정갈하지 못하고 끝이 찢겨져 있다.', drug:false },
+  { id:'간호-E', owner:'박민규', slot:'E', name:'서랍 안 서류들', desc:'출력된 환자 기록과 병원 지도.', drug:false, explorable:true, exploreType:'free', exploreText:'TB 정신병원의 도면 지도와 병원 내 환자들의 상세 기록 사본. 도면에는 복도와 옥상, 약제실의 위치가 체크되어 있다.' },
+  { id:'간호-F', owner:'박민규', slot:'F', name:'냉장고에 보관된 약', desc:'간호사들이 관리하는 약 냉장고 신선칸에 차갑게 보관 중인 약병. 겉면에 \'정유림\'라고 이름이 적혀 있다.', drug:true },
+  // 윤정하
+  { id:'하환-A', owner:'윤정하', slot:'A', name:'일기장', desc:'삐뚤빼뚤한 글씨로 채워진 윤정하의 개인 일기장. 최근 페이지에는 \'내가 정말 미친 걸까?\', \'여기서 나가야 돼\' 등, 현재 자신의 상태에 대한 극심한 의구심과 공포심이 처절하게 적혀 있다.', drug:false },
+  { id:'하환-B', owner:'윤정하', slot:'B', name:'상태 보고서', desc:'윤정하가 이 병원에 처음 들어왔을 때 작성된 초기 상태 보고서. 입원 사유란에 굵은 글씨로 \'자해 행위 반복 및 정서 불안\'이라고 날카롭게 적혀 있다.', drug:false },
+  { id:'하환-C', owner:'윤정하', slot:'C', name:'미술치료 기록지', desc:'병원 프로그램 시간에 진행된 미술치료 서류. \'가장 소중한 가족의 모습을 그리세요\'라는 안내 문구 아래, 윤정하의 도화지에는 아무것도 그려지지 않은 채 차가운 공백으로 남아있다.', drug:false },
+  { id:'하환-D', owner:'윤정하', slot:'D', name:'환자 입원서', desc:'정식 환자 입원 서류.', drug:false, explorable:true, exploreType:'free', exploreText:'환자의 인적 사항 아래, \'보호자(동의자) 성명 및 연락처\' 칸에는 이의준의 이름이 적혀 있다.' },
+  { id:'하환-E', owner:'윤정하', slot:'E', name:'팔이 찍힌 사진', desc:'윤정하의 신체 상태를 기록한 의료용 사진.', drug:false, explorable:true, exploreType:'free', exploreText:'윤정하의 양팔이 선명하게 찍혀 있으나, 흉터나 상처는 그 어디서도 찾아볼 수 없이 깨끗하다.' },
+  { id:'하환-F', owner:'윤정하', slot:'F', name:'윤정하가 입고 있는 환자복', desc:'윤정하가 현재 입고 있는 환자복. 비릿한 피냄새가 맡아질 정도로 앞판과 소매에 검붉은 피가 잔뜩 묻어 굳어있다.', drug:false },
+  // 김서진
+  { id:'약사-A', owner:'김서진', slot:'A', name:'알 수 없는 약', desc:'실험실 가장 깊숙한 곳에 철저히 은닉되어 있던 기묘한 초록색 알약. 김서진의 연구 일지 옆에 엄격하게 보관되어 있다.', drug:true },
+  { id:'약사-B', owner:'김서진', slot:'B', name:'약 조제 용품', desc:'약들을 분쇄/분포할 수 있는 조제기. 약가루들이 곳곳에 묻어있다.', drug:false, explorable:true, exploreType:'free', exploreText:'전원을 키니 미처 치우지 않은 흰색의 가루약이 떨어진다.' },
+  { id:'약사-C', owner:'김서진', slot:'C', name:'옥상 열쇠', desc:'옥상을 열 수 있는 열쇠. 마감이 뛰어나지 않은 것으로 보아 카피본인 듯 하다.', drug:false },
+  { id:'약사-D', owner:'김서진', slot:'D', name:'알 수 없는 약', desc:'약병에 가득 담겨 있는 동그랗고 하얀 알약들. 병원 공식 처방 목록에는 존재하지 않는 의문의 약품이다.', drug:true },
+  { id:'약사-E', owner:'김서진', slot:'E', name:'사용된 주사기', desc:'의료용 쓰레기통에 버려져 있는 주사기.', drug:false, explorable:true, exploreType:'free', exploreText:'바늘 끝에 정체 모를 흰색의 잔류 액체가 약간 남아있다.' },
+  { id:'약사-F', owner:'김서진', slot:'F', name:'담배와 라이터', desc:'책상 위 재떨이에 놓인 담배꽁초와 라이터.', drug:false },
+  // 서민혁
+  { id:'민환-A', owner:'서민혁', slot:'A', name:'캐비닛에 있는 서민혁의 환자복', desc:'서민혁의 캐비닛 깊숙한 곳에서 발견된 환자복.', drug:false, explorable:true, exploreType:'free', exploreText:'정리하지 않고 넣은 듯 주름이 져있다. 자세히보니 오른쪽 소매 끝에 검붉은 핏자국이 묻어 말라있다.' },
+  { id:'민환-B', owner:'서민혁', slot:'B', name:'어제 날짜의 약', desc:'어제 날짜가 찍힌 약봉투. 피해자 김사연이 서민혁에게 직접 건네준 전담 조제 약이다. 무슨 이유에서인지 먹지 않은 듯 하다.', drug:true },
+  { id:'민환-C', owner:'서민혁', slot:'C', name:'침대 매트리스 아래', desc:'침대 매트리스 밑에 무언가 있다.', drug:false, explorable:true, exploreType:'free', exploreText:'폴라로이드로 인화된 사진들. 김사연 간호사의 일상이나 근무 모습이 담겨있으나, 구도로 보아 당사자 몰래 원거리에서 촬영한 듯한 흔적이 다분하다.' },
+  { id:'민환-D', owner:'서민혁', slot:'D', name:'심리 상담 일지', desc:'병원 상담실에서 유출된 듯한 서민혁의 차트. \'담당의(이의준)와의 상담을 완강히 거부함. 오직 김사연 간호사 외에는 그 누구와도 대화나 상담을 진행하지 않음\'이라고 기록되어 있다.', drug:false },
+  { id:'민환-E', owner:'서민혁', slot:'E', name:'환자 일지', desc:'김사연 간호사가 서민혁의 상태를 기록한 기록 일지. 김사연의 필체로 \'최근 상태 악화. 피해망상 증세 보임. 병원 내 단독 행동 절대 금지\'라는 경고가 적혀 있다.', drug:false },
+  { id:'민환-F', owner:'서민혁', slot:'F', name:'인형', desc:'환자 침대 머리맡에 어울리지 않게 덩그러니 놓여 있는 낡은 봉제 인형. 김사연 간호사가 환자 위로 차원에서 선물해 준 물건이다.', drug:false },
+  // 정유림
+  { id:'유환-A', owner:'정유림', slot:'A', name:'털실 목도리', desc:'누군가 정성스럽게 만들다 만 털실 목도리. 끝자락에 \'K\'라는 이니셜이 정교하게 수놓아져 있다.', drug:false },
+  { id:'유환-B', owner:'정유림', slot:'B', name:'정유림의 일기', desc:'오래되어 보이는 노트.', drug:false, explorable:true, exploreType:'free', exploreText:'펼쳐진 페이지에는 섬뜩할 정도로 \'누군가의 죽음\'에 관해 집착하며 서술된 일기들이 빼곡히 적혀 있다.' },
+  { id:'유환-C', owner:'정유림', slot:'C', name:'상태보고서', desc:'박민규의 책상에서 발견된 환자 상태 보고서. 정유림에 대해 \'약을 주기적으로 복용하는 것에 비해 치료 경과가 지나치게 더디고 이상 증세가 반복됨\'이라고 적혀있다.', drug:false },
+  { id:'유환-D', owner:'정유림', slot:'D', name:'복약 일지', desc:'매일의 투약 기록이 적힌 일지. 박민규가 적은 듯 하다. 정유림이 심각한 환각과 환청 증세를 치료하기 위해 매일 약을 복용 중이라는 사실이 기록되어 있다.', drug:false },
+  { id:'유환-E', owner:'정유림', slot:'E', name:'정유림의 일기', desc:'새 것처럼 보이는 노트.', drug:false, explorable:true, exploreType:'free', exploreText:'\'누군가의 구원\'에 대한 찬양이 상세하게 적혀있다.' },
+  { id:'유환-F', owner:'정유림', slot:'F', name:'바닥에 굴러다니는 알약', desc:'침대 밑 먼지 구덩이 바닥에 덩그러니 굴러다니는 하얀색 알약. 김서진이 매일 챙겨주는 약인데, 챙겨주다 떨어트린 듯하다.', drug:true },
+  // 복도
+  { id:'복도-A', owner:'복도', slot:'A', name:'노트북', desc:'비밀번호 잠금장치가 걸려 있는 누군가의 노트북이 쓰레기통에 버려져 있다. 화면 비밀번호 힌트 칸에 \'잊지 말아야 할 날짜\'라는 문구가 띄워져 있다.', drug:false, explorable:true, exploreType:'password', exploreHint:'화면에 떠 있는 비밀번호 힌트: \'잊지 말아야 할 날짜\' (YYYYMMDD)', exploreText:`노트북을 열자, 작성 중이었던 것으로 보이는 메일이 열려있다.<br>수신자로는 국내 주요 방송국 및 탐사보도팀의 제보 메일 주소들이다.<br><br><strong style="color:var(--text);">제목 : TB 폐쇄병동 약물 미승인 임상실험 건</strong><br><br>안녕하세요.<br>제보할 것이 있어 메일드립니다. 저는 TB 폐쇄병동에서 근무 중인 김사연 간호사입니다.<br>현재 본 병동에서는 환자들을 대상으로 정체가 불분명한 약물에 대한 미승인 임상실험이 진행되고 있습니다.<br>해당 약물은 내부적으로 \'BB\'라고 불리고 있으며, 부작용으로 환자들에게 환각, 환청, 자해 충동, 의식 소실 등의 증상을 유발합니다. 그러나 정확한 용량으로 단번에 복용시 <strong>사람의 의식을 조종할 수 있게 되는 약물</strong>인 것 같습니다.<br>1년 전 사망한 최아름 역시 이 약물과 관련되어 있다고 의심하고 있으며, 현재까지 확인한 내용은 다음과 같습니다.<br><br>메일은 완성되지 않은 상태로 임시 저장되어 있었고, 예약 전송이나 발송 기록 또한 존재하지 않는다.` },
+  { id:'복도-B', owner:'복도', slot:'B', name:'핏자국', desc:'복도 구석의 핏자국. 발견 당시 윤정하가 자고 있던 공간에 묻어있다.', drug:false },
+  { id:'옥상-A', owner:'옥상', slot:'A', name:'핏자국', desc:'누군가 피를 흘린 듯한 자국. 그러나 비벼져 엉망이다.', drug:false },
+  { id:'옥상-B', owner:'옥상', slot:'B', name:'담배꽁초', desc:'다 태운 담배꽁초. 여러개가 버려져있다. 몇몇은 오래 되어 보인다.', drug:false },
+  { id:'옥상-C', owner:'옥상', slot:'C', name:'공사 도구', desc:'유지 보수 공사에 필요한 여러 도구들. 삽, 망치, 렌치 외 날카로운 것들도 보인다.', drug:false, explorable:true, exploreType:'free', exploreText:'자세히 보니 망치에 피를 닦은 흔적이 있다.' },
+  // 김사연
+  { id:'사연-A', owner:'김사연', slot:'A', name:'시체', desc:'사망한 김사연 간호사의 시신. 머리 앞부분과 뒷부분에 강한 충격을 받은 외상이 있으며, 피가 얼굴과 바닥에 묻어있다.', drug:false },
+  { id:'사연-B', owner:'김사연', slot:'B', name:'피해자의 핸드폰', desc:'피해자의 휴대전화. 패턴이 비밀번호로 걸려있다.', drug:false, explorable:true, exploreType:'pattern', exploreHint:'패턴을 입력하여 잠금을 해제하세요.', exploreText:'핸드폰의 통화 내역을 확인할 수 있게 되었다.<br><br>사건 당일 새벽 1시 50분, 이의준에게 발신 통화 내역. 연결되었다.<br>사건 당일 새벽 2시 25분, 발신자 표시제한으로부터 수신 통화 내역. 연결되었다.<br>사건 당일 새벽 2시 12분, 박민규에게 발신 통화 내역. 연결되지 않았다.<br>사건 당일 새벽 3시 36분, 박민규로부터 수신 통화 내역. 연결되지 않았다.' },
+];
+
+const OWNER_META = {
+  '한경민': { badge:'badge-other',   label:'경비' },
+  '이의준': { badge:'badge-medical', label:'의료진' },
+  '박민규':{ badge:'badge-medical', label:'의료진' },
+  '윤정하': { badge:'badge-patient', label:'환자' },
+  '김서진': { badge:'badge-medical', label:'의료진' },
+  '서민혁': { badge:'badge-patient', label:'환자' },
+  '정유림': { badge:'badge-patient', label:'환자' },
+  '복도':   { badge:'badge-special', label:'기타' },
+  '옥상':   { badge:'badge-special', label:'기타' },
+  '김사연': { badge:'badge-special', label:'기타' },
+};
+
+const SECTION_OWNERS = ['서민혁','이의준','정유림','박민규','한경민','윤정하','김서진','복도','옥상','김사연'];
+
+// ===== STATE (Firebase 공용 상태) =====
+const DEFAULT_STATE = { initial: {}, collected: {}, drugRevealed: [], drugUsed: [] };
+let state = DEFAULT_STATE;
+
+// Firebase 실시간 감시: 누군가 바꾸면 전원 화면이 즉시 갱신됨
+onValue(stateRef, (snapshot) => {
+  const data = snapshot.val();
+  state = data ? normalizeState(data) : DEFAULT_STATE;
+  render();
+  const syncEl = document.getElementById('sync-status');
+  if (syncEl) syncEl.innerHTML = '<span class="sync-dot" style="width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;"></span> 모든 참여자와 실시간으로 공유됩니다';
+});
+
+function normalizeState(data) {
+  return {
+    initial: data.initial || {},
+    collected: data.collected || {},
+    drugRevealed: data.drugRevealed || [],
+    drugUsed: data.drugUsed || [],
+  };
+}
+
+// state 전체를 Firebase에 덮어쓰기 (이게 곧 saveState)
+async function saveState() {
+  try {
+    await set(stateRef, state);
+  } catch (e) {
+    console.error('Firebase 저장 실패:', e);
+    alert('저장 실패: ' + e.message + '\n(Firebase Rules에서 write: true 설정을 확인해 주세요)');
+  }
+}
+
+// ===== RENDER =====
+function render() {
+  renderSections();
+  renderSummary();
+}
+
+function renderSections() {
+  const container = document.getElementById('clue-sections');
+  container.innerHTML = '';
+
+  SECTION_OWNERS.forEach(owner => {
+    const clues = CLUES.filter(c => c.owner === owner);
+    const meta = OWNER_META[owner];
+    const isCharOwner = CHARS.includes(owner);
+
+    const block = document.createElement('div');
+    block.className = 'owner-block';
+
+    // Count collected
+    const collectedCount = clues.filter(c => state.collected[c.id] || (isCharOwner && state.initial[owner] === c.id)).length;
+
+    block.innerHTML = `
+      <div class="sec-title">${owner === '복도' ? '복도' : owner === '김사연' ? '김사연 간호사 (피해자)' : owner + '의 단서'}</div>
+      <div class="owner-header">
+        <span class="owner-name">${owner}${roleLabel(owner)}</span>
+        <span class="owner-badge ${meta.badge}">${meta.label}</span>
+        <span class="count-badge">${collectedCount} / ${clues.length}</span>
+      </div>
+      <div class="clue-grid" id="grid-${owner}"></div>
+    `;
+    container.appendChild(block);
+
+    const grid = block.querySelector(`#grid-${owner}`);
+    clues.forEach(clue => {
+      grid.appendChild(makeClueCard(clue, isCharOwner));
+    });
+  });
+}
+
+function makeClueCard(clue, isCharOwner) {
+  const card = document.createElement('div');
+  card.className = 'clue-card';
+  card.id = 'card-' + clue.id;
+
+  const initialOwner = clue.owner; // char who owns this clue set
+  const isInitial = isCharOwner && state.initial[initialOwner] === clue.id;
+  const isNoInitial = clue.noInitial; // 한경민B 약물
+  const collectedBy = state.collected[clue.id];
+  const isLocked = isInitial; // locked = already initial
+
+  const isDrugRevealed = (state.drugRevealed || []).includes(clue.id);
+  const isCollectedDrug = clue.drug && !!collectedBy;
+  const isDrugUsed = (state.drugUsed || []).includes(clue.id);
+
+  let statusHTML = '';
+  let collectorHTML = '';
+
+  if (isInitial) {
+    card.classList.add('initial');
+    statusHTML = isDrugUsed
+      ? `<span class="clue-status" style="background:rgba(68,68,90,0.3);color:var(--dim);">투약에 사용됨</span>`
+      : `<span class="clue-status status-initial">최초 소지</span>`;
+  } else if (collectedBy) {
+    card.classList.add('collected');
+    statusHTML = isDrugUsed
+      ? `<span class="clue-status" style="background:rgba(68,68,90,0.3);color:var(--dim);">투약에 사용됨</span>`
+      : `<span class="clue-status status-collected">획득</span>`;
+    collectorHTML = `<div class="collector-tag">✓ ${collectedBy}</div>`;
+  }
+
+  // 약물 표시: 획득됐거나 포기로 공개된 경우에만
+  const drugHTML = (isDrugRevealed || isCollectedDrug) ? `<div style="margin-top:6px;font-size:10px;color:var(--red2);letter-spacing:1px;">💊 약물</div>` : '';
+  const exploreHTML = clue.explorable && (isInitial || collectedBy) ? `<div style="margin-top:6px;font-size:10px;color:var(--green2);letter-spacing:1px;">🔎 탐색</div>` : '';
+  const noInitialNote = '';
+
+  card.innerHTML = `
+    ${statusHTML}
+    <div class="clue-label">${clue.owner} · ${clue.slot}</div>
+    ${drugHTML}
+    ${exploreHTML}
+    ${noInitialNote}
+    ${collectorHTML}
+  `;
+
+  // 약물이고 이미 획득된 카드는 클릭 불가
+  if (!isCollectedDrug) {
+    card.addEventListener('click', () => onClueClick(clue, isCharOwner));
+  } else {
+    card.style.cursor = 'not-allowed';
+    card.style.opacity = '0.6';
+  }
+
+  return card;
+}
+
+function onClueClick(clue, isCharOwner) {
+  const initialOwner = clue.owner;
+  const isInitialSet = isCharOwner && state.initial[initialOwner] === clue.id;
+  const isCollected = !!state.collected[clue.id];
+  const hasInitialAlready = isCharOwner && !!state.initial[initialOwner];
+
+  if (isInitialSet) {
+    // 그리드에서는 클릭 불가 (하단 수집 현황에서 양도 가능)
+    return;
+  }
+
+  if (isCollected) {
+    showModal({
+      title: '획득 취소',
+      desc: `<span class="modal-clue-name">${clue.owner} · ${clue.slot}</span>의 획득 기록을 취소하시겠습니까?`,
+      confirmText: '취소하기',
+      danger: false,
+      onConfirm: () => {
+        delete state.collected[clue.id];
+        saveState();
+        render();
+      }
+    });
+    return;
+  }
+
+  if (isCharOwner && !hasInitialAlready && !clue.noInitial) {
+    // Can set as initial
+    showModalWithChoice({
+      clue,
+      initialOwner,
+      hasInitialAlready,
+    });
+  } else {
+    // Collect
+    showCollectModal(clue);
+  }
+}
+
+function showModalWithChoice({ clue, initialOwner }) {
+  openModal();
+  document.getElementById('modal-title').textContent = `${clue.owner} · ${clue.slot}`;
+  document.getElementById('modal-desc').innerHTML = `
+    <p style="font-size:11px;color:var(--accent);letter-spacing:2px;margin-bottom:10px;">어떤 작업을 하시겠습니까?</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="col-opt selected" id="choice-initial" onclick="selectChoice('initial')">🔒 ${initialOwner}의 최초 소지로 설정</button>
+      <button class="col-opt" id="choice-collect" onclick="selectChoice('collect')">✓ 획득 처리</button>
+    </div>
+  `;
+  document.getElementById('modal-collector').style.display = 'none';
+  document.getElementById('modal-confirm-btn').textContent = '확인';
+  document.getElementById('modal-confirm-btn').className = 'modal-confirm';
+
+  window._pendingClue = clue;
+  window._pendingChoice = 'initial';
+
+  document.getElementById('modal-confirm-btn').onclick = () => {
+    if (window._pendingChoice === 'initial') {
+      state.initial[clue.owner] = clue.id;
+      saveState();
+      closeModal();
+      render();
+    } else {
+      closeModal();
+      showCollectModal(clue);
+    }
+  };
+}
+
+function showRevealModal(clue, note) {
+  openModal();
+  document.getElementById('modal-title').textContent = clue.name;
+  const drugHTML = clue.drug ? `<div style="margin-top:10px;font-size:11px;color:var(--accent2);letter-spacing:1px;">💊 약물 카드</div>` : '';
+  const noteHTML = note ? `<div style="margin-bottom:12px;font-size:12px;color:var(--green2);">✓ ${note}</div>` : '';
+  document.getElementById('modal-desc').innerHTML = `
+    ${noteHTML}
+    <div style="padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;font-size:13px;color:#bbbbd0;line-height:1.8;">${clue.desc}</div>
+    ${drugHTML}
+    ${getHiddenContentHTML(clue)}
+  `;
+  document.getElementById('modal-collector').style.display = 'none';
+  document.getElementById('modal-confirm-btn').textContent = '닫기';
+  document.getElementById('modal-confirm-btn').className = 'modal-confirm';
+  document.getElementById('modal-confirm-btn').onclick = () => { closeModal(); render(); };
+}
+
+// ===== HIDDEN CONTENT (날짜 기반 비밀번호로 잠긴 추가 정보) =====
+const HIDDEN_CONTENT = {
+  '복도-A': `노트북을 열자, 작성 중이었던 것으로 보이는 메일이 열려있다.<br>수신자로는 국내 주요 방송국 및 탐사보도팀의 제보 메일 주소들이다.<br><br><strong style="color:var(--text);">제목 : TB 폐쇄병동 약물 미승인 임상실험 건</strong><br><br>안녕하세요.<br>제보할 것이 있어 메일드립니다. 저는 TB 폐쇄병동에서 근무 중인 김사연 간호사입니다.<br>현재 본 병동에서는 환자들을 대상으로 정체가 불분명한 약물에 대한 미승인 임상실험이 진행되고 있습니다.<br>해당 약물은 내부적으로 'BB'라고 불리고 있으며, 부작용으로 환자들에게 환각, 환청, 자해 충동, 의식 소실 등의 증상을 유발합니다. 그러나 정확한 용량으로 단번에 복용시 <strong>사람의 의식을 조종할 수 있게 되는 약물</strong>인 것 같습니다.<br>1년 전 사망한 최아름 역시 이 약물과 관련되어 있다고 의심하고 있으며, 현재까지 확인한 내용은 다음과 같습니다.<br><br>메일은 완성되지 않은 상태로 임시 저장되어 있었고, 예약 전송이나 발송 기록 또한 존재하지 않는다.`,
+  '경비-A': `인위적으로 기록이 삭제되어 있다···.`,
+};
+
+function getYesterdayPassword() {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() - 1);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}${m}${day}`;
+}
+
+function getTodayPassword() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}${m}${day}`;
+}
+
+function getPassword(clueId) {
+  const clue = CLUES.find(c => c.id === clueId);
+  if (clue && clue.explorePwType === 'today') return getTodayPassword();
+  return getYesterdayPassword();
+}
+
+// ===== EXPLORE (탐색) =====
+function getExploreHTML(clue) {
+  if (!clue.explorable) return '';
+  const isExplored = (state.explored || []).includes(clue.id);
+
+  if (isExplored) {
+    return `
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+          <span style="font-size:11px;color:var(--accent2);letter-spacing:2px;font-weight:600;">🔎 탐색 결과</span>
+        </div>
+        <div style="padding:14px;background:rgba(192,132,252,0.08);border:2px solid var(--accent2);border-radius:2px;font-size:13px;color:#e8d8ff;line-height:1.8;">${clue.exploreText}</div>
+      </div>
+    `;
+  }
+
+  if (clue.exploreType === 'free') {
+    return `
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+        <button class="col-opt" style="border:2px solid var(--accent2);color:var(--accent2);font-weight:600;" onclick="doExplore('${clue.id}')">🔎 탐색하기</button>
+      </div>
+    `;
+  }
+
+  if (clue.exploreType === 'password') {
+    return `
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+        <p style="font-size:11px;color:var(--accent2);letter-spacing:2px;margin-bottom:10px;font-weight:600;">🔎 탐색 — ${clue.exploreHint || '비밀번호를 입력하세요'}</p>
+        <input type="text" id="explore-pw-${clue.id}" placeholder="(YYYYMMDD)" maxlength="8"
+          style="width:100%;background:var(--surface2);border:2px solid var(--accent2);color:var(--text);padding:10px 14px;border-radius:2px;font-family:'Noto Sans KR';font-size:14px;outline:none;margin-bottom:8px;"
+          onkeydown="if(event.key==='Enter')checkExplorePw('${clue.id}')">
+        <button class="col-opt" style="border:2px solid var(--accent2);color:var(--accent2);font-weight:600;" onclick="checkExplorePw('${clue.id}')">🔎 탐색하기</button>
+        <div id="explore-pw-error-${clue.id}" style="font-size:12px;color:var(--red);margin-top:8px;"></div>
+      </div>
+    `;
+  }
+
+  if (clue.exploreType === 'pattern') {
+    setTimeout(() => initPattern(clue.id), 50);
+    return `
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+        <p style="font-size:11px;color:var(--accent2);letter-spacing:2px;margin-bottom:10px;font-weight:600;">🔎 탐색 — ${clue.exploreHint || '패턴을 그려 잠금을 해제하세요'}</p>
+        ${getPatternPadHTML(clue.id)}
+        <div id="explore-pw-error-${clue.id}" style="font-size:12px;color:var(--red);margin-top:8px;"></div>
+      </div>
+    `;
+  }
+
+  return '';
+}
+
+async function markExplored(clueId) {
+  if (!state.explored) state.explored = [];
+  if (!state.explored.includes(clueId)) state.explored.push(clueId);
+  await saveState();
+  render();
+}
+
+async function doExplore(clueId) {
+  await markExplored(clueId);
+  const clue = CLUES.find(c => c.id === clueId);
+  showRevealModal(clue);
+}
+
+function getHiddenContentHTML(clue) {
+  return getExploreHTML(clue);
+}
+
+async function checkExplorePw(clueId) {
+  const input = document.getElementById('explore-pw-' + clueId);
+  const val = input.value.trim();
+  if (val === getPassword(clueId)) {
+    await markExplored(clueId);
+    const clue = CLUES.find(c => c.id === clueId);
+    showRevealModal(clue);
+  } else {
+    document.getElementById('explore-pw-error-' + clueId).textContent = '비밀번호가 올바르지 않습니다.';
+    input.value = '';
+  }
+}
+
+// ===== 3x3 패턴 입력 UI (김사연 핸드폰) =====
+const PATTERN_ANSWER = '12369874';
+
+function getPatternPadHTML(clueId) {
+  return `
+    <div id="pattern-wrap-${clueId}" style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+      <svg id="pattern-svg-${clueId}" width="220" height="220" viewBox="0 0 220 220" style="touch-action:none;">
+        <line id="pattern-line-${clueId}" stroke="var(--accent2)" stroke-width="3" />
+        ${[1,2,3,4,5,6,7,8,9].map(n => {
+          const col = (n - 1) % 3, row = Math.floor((n - 1) / 3);
+          const cx = 40 + col * 70, cy = 40 + row * 70;
+          return `<circle data-num="${n}" cx="${cx}" cy="${cy}" r="14" fill="var(--surface2)" stroke="var(--border)" stroke-width="2" style="cursor:pointer;" id="pattern-dot-${clueId}-${n}"></circle>`;
+        }).join('')}
+      </svg>
+      <div style="font-size:12px;color:var(--muted);" id="pattern-display-${clueId}">패턴을 그려주세요</div>
+      <div style="display:flex;gap:8px;">
+        <button class="col-opt" onclick="resetPattern('${clueId}')">↺ 다시 그리기</button>
+        <button class="col-opt" style="border:2px solid var(--accent2);color:var(--accent2);font-weight:600;" onclick="submitPattern('${clueId}')">🔎 탐색하기</button>
+      </div>
+    </div>
+  `;
+}
+
+window._patternState = {};
+
+function initPattern(clueId) {
+  window._patternState[clueId] = [];
+  const svg = document.getElementById('pattern-svg-' + clueId);
+  if (!svg) return;
+  let drawing = false;
+
+  const getNumFromPoint = (x, y) => {
+    for (let n = 1; n <= 9; n++) {
+      const dot = document.getElementById(`pattern-dot-${clueId}-${n}`);
+      if (!dot) continue;
+      const cx = parseFloat(dot.getAttribute('cx'));
+      const cy = parseFloat(dot.getAttribute('cy'));
+      if (Math.hypot(x - cx, y - cy) < 18) return n;
+    }
+    return null;
+  };
+
+  const addPoint = (n) => {
+    const seq = window._patternState[clueId];
+    if (!seq.includes(n)) {
+      seq.push(n);
+      document.getElementById(`pattern-dot-${clueId}-${n}`).setAttribute('fill', 'var(--accent2)');
+      document.getElementById('pattern-display-' + clueId).textContent = seq.join(' - ');
+    }
+  };
+
+  const getSvgCoords = (evt) => {
+    const rect = svg.getBoundingClientRect();
+    const point = evt.touches ? evt.touches[0] : evt;
+    const x = (point.clientX - rect.left) * (220 / rect.width);
+    const y = (point.clientY - rect.top) * (220 / rect.height);
+    return { x, y };
+  };
+
+  const start = (evt) => {
+    drawing = true;
+    const { x, y } = getSvgCoords(evt);
+    const n = getNumFromPoint(x, y);
+    if (n) addPoint(n);
+  };
+  const move = (evt) => {
+    if (!drawing) return;
+    evt.preventDefault();
+    const { x, y } = getSvgCoords(evt);
+    const n = getNumFromPoint(x, y);
+    if (n) addPoint(n);
+  };
+  const end = () => { drawing = false; };
+
+  svg.onmousedown = start;
+  svg.onmousemove = move;
+  svg.onmouseup = end;
+  svg.ontouchstart = start;
+  svg.ontouchmove = move;
+  svg.ontouchend = end;
+}
+
+function resetPattern(clueId) {
+  window._patternState[clueId] = [];
+  for (let n = 1; n <= 9; n++) {
+    const dot = document.getElementById(`pattern-dot-${clueId}-${n}`);
+    if (dot) dot.setAttribute('fill', 'var(--surface2)');
+  }
+  const disp = document.getElementById('pattern-display-' + clueId);
+  if (disp) disp.textContent = '패턴을 그려주세요';
+}
+
+async function submitPattern(clueId) {
+  const seq = (window._patternState[clueId] || []).join('');
+  if (seq === PATTERN_ANSWER) {
+    await markExplored(clueId);
+    const clue = CLUES.find(c => c.id === clueId);
+    showRevealModal(clue);
+  } else {
+    document.getElementById('explore-pw-error-' + clueId).textContent = '패턴이 올바르지 않습니다.';
+    resetPattern(clueId);
+  }
+}
+
+function selectChoice(val) {
+  window._pendingChoice = val;
+  document.getElementById('choice-initial').classList.toggle('selected', val === 'initial');
+  document.getElementById('choice-collect').classList.toggle('selected', val === 'collect');
+}
+
+function showCollectModal(clue) {
+  openModal();
+  document.getElementById('modal-title').textContent = `${clue.owner} · ${clue.slot} 획득`;
+  document.getElementById('modal-desc').innerHTML = `<span style="font-size:12px;color:var(--muted);">획득한 인물을 선택해 주세요.</span>`;
+
+  const collectorDiv = document.getElementById('modal-collector');
+  collectorDiv.style.display = 'block';
+  const opts = document.getElementById('collector-opts');
+  opts.innerHTML = CHARS.map(c =>
+    `<button class="col-opt" onclick="selectCollector('${c}',this)">${c}</button>`
+  ).join('');
+
+  window._selectedCollector = null;
+  document.getElementById('modal-confirm-btn').textContent = '획득 확인';
+  document.getElementById('modal-confirm-btn').className = 'modal-confirm';
+  document.getElementById('modal-confirm-btn').onclick = () => {
+    if (!window._selectedCollector) { alert('획득한 인물을 선택해 주세요.'); return; }
+    state.collected[clue.id] = window._selectedCollector;
+    saveState();
+    closeModal();
+    render();
+  };
+}
+
+function selectCollector(name, btn) {
+  window._selectedCollector = name;
+  document.querySelectorAll('#collector-opts .col-opt').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function showModal({ title, desc, confirmText, danger, onConfirm }) {
+  openModal();
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-desc').innerHTML = desc;
+  document.getElementById('modal-collector').style.display = 'none';
+  const btn = document.getElementById('modal-confirm-btn');
+  btn.textContent = confirmText || '확인';
+  btn.className = 'modal-confirm' + (danger ? ' danger' : '');
+  btn.onclick = async () => { await onConfirm(); closeModal(); };
+}
+
+function openModal()  { document.getElementById('modal').style.display = 'flex'; }
+function closeModal() { document.getElementById('modal').style.display = 'none'; }
+
+// ===== SUMMARY =====
+function renderSummary() {
+  const tbody = document.getElementById('summary-body');
+  tbody.innerHTML = '';
+  CHARS.forEach(char => {
+    const initialId = state.initial[char];
+    const initialClue = CLUES.find(c => c.id === initialId);
+    const collectedClues = CLUES.filter(c => state.collected[c.id] === char);
+    const meta = OWNER_META[char];
+
+    const initialHTML = initialClue
+      ? (() => {
+          const isUsed = (state.drugUsed || []).includes(initialClue.id);
+          const usedTag = isUsed ? ` <span style="color:var(--dim);font-size:10px;">· 투약에 사용됨</span>` : '';
+          const drugTag = initialClue.drug ? ` <span style="color:#ef4444;font-size:10px;">[약물]</span>` : '';
+          const exploreTag = initialClue.explorable ? ` <span style="color:var(--green2);font-size:10px;">[탐색]</span>` : '';
+          const exploredTag = initialClue.explorable && (state.explored || []).includes(initialClue.id) ? ` <span style="color:var(--green);font-size:10px;">✔ 탐색 완료</span>` : '';
+          return `<span class="clue-tag initial-tag" style="cursor:pointer;${isUsed?'opacity:0.5;':''}" onclick="showInitialActions(window.CLUES.find(c=>c.id==='${initialClue.id}'),'${char}')">🔒 ${initialClue.owner} · ${initialClue.slot}${drugTag}${exploreTag}${exploredTag}${usedTag}</span>`;
+        })()
+      : `<span class="empty-tag">미선택</span>`;
+
+    const collectedHTML = collectedClues.length
+      ? collectedClues.map(c => {
+          const isUsed = (state.drugUsed || []).includes(c.id);
+          const drugTag = c.drug ? ` <span style="color:var(--red2);font-size:10px;">[약물]</span>` : '';
+          const usedTag = isUsed ? ` <span style="color:var(--dim);font-size:10px;">· 투약에 사용됨</span>` : '';
+          return `<span class="clue-tag collected-tag" style="cursor:pointer;${isUsed?'opacity:0.5;':''}" onclick="showClueActions('${c.id}','${char}')">
+            ${c.owner} · ${c.slot}${drugTag}${c.explorable ? ' <span style=\"color:var(--green2);font-size:10px;\">[탐색]</span>' : ''}${c.explorable && (state.explored || []).includes(c.id) ? ' <span style=\"color:var(--green);font-size:10px;">✔ 탐색 완료</span>' : ''}${usedTag}
+          </span>`;
+        }).join('')
+      : `<span class="empty-tag">없음</span>`;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <span class="summary-name" style="cursor:pointer;text-decoration:underline;text-underline-offset:3px;color:var(--accent2);" onclick="openPersonalView('${char}')">${char}${roleLabel(char)}</span>
+        <br><span class="owner-badge ${meta.badge}" style="font-size:10px;padding:1px 6px;margin-top:4px;display:inline-block;">${meta.label}</span>
+      </td>
+      <td><div class="clue-tags">${initialHTML}</div></td>
+      <td><div class="clue-tags">${collectedHTML}</div></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ===== CLUE ACTIONS (양도 / 포기 / 투약에 사용) =====
+// ===== INITIAL CLUE ACTIONS (양도) =====
+function showInitialActions(clue, ownerChar) {
+  openModal();
+  document.getElementById('modal-title').textContent = `${clue.owner} · ${clue.slot}`;
+
+  const isMedical = ['이의준', '박민규', '김서진'].includes(ownerChar);
+  const isUsed = (state.drugUsed || []).includes(clue.id);
+
+  const transferBtn = !isUsed ? `<button class="col-opt selected" onclick="showTransferModal('${clue.id}','${ownerChar}',true)">↗ 양도</button>` : '';
+  const useBtn = clue.drug && isMedical && !isUsed
+    ? `<button class="col-opt" style="border-color:var(--accent);color:var(--accent2);" onclick="useDrugFromInitial('${clue.id}')">💉 투약에 사용</button>`
+    : isUsed ? `<span style="font-size:12px;color:var(--dim);">💉 투약에 사용됨</span>` : '';
+
+  document.getElementById('modal-desc').innerHTML = `
+    <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">현재 소지: <strong style="color:var(--text);">${ownerChar}</strong> · <span style="color:var(--accent2);">🔒 최초 소지</span>${clue.drug ? ' · <span style="color:var(--red2);">💊 약물</span>' : ''}</p>
+    <p style="font-size:11px;color:var(--accent);letter-spacing:2px;margin-bottom:10px;">작업 선택</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      ${transferBtn}
+      ${useBtn}
+    </div>
+  `;
+  document.getElementById('modal-collector').style.display = 'none';
+  document.getElementById('modal-confirm-btn').textContent = '닫기';
+  document.getElementById('modal-confirm-btn').className = 'modal-confirm';
+  document.getElementById('modal-confirm-btn').onclick = () => closeModal();
+}
+
+function useDrugFromInitial(clueId) {
+  const clue = CLUES.find(c => c.id === clueId);
+  closeModal();
+  showModal({
+    title: '투약에 사용',
+    desc: `<strong style="color:var(--text);">${clue.owner} · ${clue.slot}</strong> 약물을 투약에 사용하시겠습니까?<br><span style="font-size:12px;color:var(--muted);">사용 후 해당 단서는 '투약에 사용됨'으로 표시됩니다.</span>`,
+    confirmText: '사용',
+    danger: false,
+    onConfirm: async () => {
+      try {
+        const snapshot = await get(stateRef);
+        const latest = snapshot.exists() ? normalizeState(snapshot.val()) : { ...DEFAULT_STATE };
+        if (!latest.drugUsed.includes(clueId)) latest.drugUsed.push(clueId);
+        state = latest;
+        await saveState();
+        render();
+      } catch (e) {
+        console.error('투약 처리 실패:', e);
+        alert('처리 실패: ' + e.message);
+      }
+    }
+  });
+}
+
+function showClueActions(clueId, currentHolder) {
+  const clue = CLUES.find(c => c.id === clueId);
+  if (!clue) return;
+  openModal();
+  document.getElementById('modal-title').textContent = `${clue.owner} · ${clue.slot}`;
+
+  const isKyeongbi = currentHolder === '한경민';
+  const isMedical = ['이의준', '박민규', '김서진'].includes(currentHolder);
+  const isUsed = (state.drugUsed || []).includes(clueId);
+
+  const abandonBtn = isKyeongbi && clue.drug && !isUsed
+    ? `<button class="col-opt" style="border-color:var(--red);color:var(--red2);" onclick="abandonClue('${clueId}')">🗑 포기 (한경민 전용)</button>`
+    : '';
+
+  const useBtn = clue.drug && isMedical && !isUsed
+    ? `<button class="col-opt" style="border-color:var(--accent);color:var(--accent2);" onclick="useDrug('${clueId}','${currentHolder}')">💉 투약에 사용</button>`
+    : isUsed ? `<span style="font-size:12px;color:var(--dim);">💉 투약에 사용됨</span>` : '';
+
+  document.getElementById('modal-desc').innerHTML = `
+    <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">현재 소지: <strong style="color:var(--text);">${currentHolder}</strong>${clue.drug ? ' · <span style="color:var(--red2);">💊 약물</span>' : ''}</p>
+    <p style="font-size:11px;color:var(--accent);letter-spacing:2px;margin-bottom:10px;">작업 선택</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      ${!isUsed ? `<button class="col-opt selected" onclick="showTransferModal('${clueId}','${currentHolder}')">↗ 양도</button>` : ''}
+      ${useBtn}
+      ${abandonBtn}
+    </div>
+  `;
+  document.getElementById('modal-collector').style.display = 'none';
+  document.getElementById('modal-confirm-btn').textContent = '닫기';
+  document.getElementById('modal-confirm-btn').className = 'modal-confirm';
+  document.getElementById('modal-confirm-btn').onclick = () => closeModal();
+}
+
+function useDrug(clueId, currentHolder) {
+  const clue = CLUES.find(c => c.id === clueId);
+  closeModal();
+  showModal({
+    title: '투약에 사용',
+    desc: `<strong style="color:var(--text);">${clue.owner} · ${clue.slot}</strong> 약물을 투약에 사용하시겠습니까?<br><span style="font-size:12px;color:var(--muted);">사용 후 해당 단서는 '투약에 사용됨'으로 표시됩니다.</span>`,
+    confirmText: '사용',
+    danger: false,
+    onConfirm: async () => {
+      try {
+        const snapshot = await get(stateRef);
+        const latest = snapshot.exists() ? normalizeState(snapshot.val()) : { ...DEFAULT_STATE };
+        if (!latest.drugUsed.includes(clueId)) latest.drugUsed.push(clueId);
+        state = latest;
+        await saveState();
+        render();
+      } catch (e) {
+        console.error('투약 처리 실패:', e);
+        alert('처리 실패: ' + e.message);
+      }
+    }
+  });
+}
+
+function showTransferModal(clueId, currentHolder, fromInitial) {
+  const clue = CLUES.find(c => c.id === clueId);
+  closeModal();
+  openModal();
+  document.getElementById('modal-title').textContent = `양도 · ${clue.owner} · ${clue.slot}`;
+  document.getElementById('modal-desc').innerHTML = `<span style="font-size:12px;color:var(--muted);">양도받을 인물을 선택해 주세요.</span>`;
+
+  const collectorDiv = document.getElementById('modal-collector');
+  collectorDiv.style.display = 'block';
+  document.getElementById('collector-opts').innerHTML = CHARS
+    .filter(c => c !== currentHolder)
+    .map(c => `<button class="col-opt" onclick="selectCollector('${c}',this)">${c}</button>`)
+    .join('');
+
+  window._selectedCollector = null;
+  document.getElementById('modal-confirm-btn').textContent = '양도 확인';
+  document.getElementById('modal-confirm-btn').className = 'modal-confirm';
+  document.getElementById('modal-confirm-btn').onclick = () => {
+    if (!window._selectedCollector) { alert('양도받을 인물을 선택해 주세요.'); return; }
+    if (fromInitial) delete state.initial[currentHolder];
+    state.collected[clueId] = window._selectedCollector;
+    saveState();
+    closeModal();
+    render();
+  };
+}
+
+function abandonClue(clueId) {
+  const clue = CLUES.find(c => c.id === clueId);
+  closeModal();
+  showModal({
+    title: '포기 확인',
+    desc: `<strong style="color:var(--text);">${clue.owner} · ${clue.slot}</strong> 약물 카드를 포기하시겠습니까?<br><span style="font-size:12px;color:var(--muted);">포기된 카드는 원래 자리로 돌아가며, [약물]임이 공개됩니다.</span>`,
+    confirmText: '포기',
+    danger: true,
+    onConfirm: () => {
+      delete state.collected[clueId];
+      if (!state.drugRevealed) state.drugRevealed = [];
+      if (!state.drugRevealed.includes(clueId)) state.drugRevealed.push(clueId);
+      saveState();
+      render();
+    }
+  });
+}
+
+// ===== PERSONAL VIEW =====
+const PASSWORDS = {
+  '서민혁': 'angry', '이의준': 'care', '정유림': 'love',
+  '박민규': 'justice', '한경민': 'money', '윤정하': 'unknown', '김서진': 'mad'
+};
+
+function openPersonalView(char) {
+  openModal();
+  document.getElementById('modal-title').textContent = `${char} · 내 단서 확인`;
+  document.getElementById('modal-desc').innerHTML = `
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">비밀번호를 입력하세요</p>
+    <input type="password" id="personal-pw" placeholder="비밀번호"
+      style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);
+             padding:10px 14px;border-radius:2px;font-family:'Noto Sans KR';font-size:14px;outline:none;"
+      onkeydown="if(event.key==='Enter')confirmPersonalView('${char}')"
+    >
+    <div id="personal-pw-error" style="font-size:12px;color:var(--red);margin-top:8px;height:16px;"></div>
+  `;
+  document.getElementById('modal-collector').style.display = 'none';
+  document.getElementById('modal-confirm-btn').textContent = '확인';
+  document.getElementById('modal-confirm-btn').className = 'modal-confirm';
+  document.getElementById('modal-confirm-btn').onclick = () => confirmPersonalView(char);
+  setTimeout(() => document.getElementById('personal-pw')?.focus(), 100);
+}
+
+function confirmPersonalView(char) {
+  const input = document.getElementById('personal-pw').value.trim();
+  if (input !== PASSWORDS[char]) {
+    document.getElementById('personal-pw-error').textContent = '비밀번호가 틀렸습니다.';
+    document.getElementById('personal-pw').value = '';
+    return;
+  }
+  closeModal();
+  showPersonalClues(char);
+}
+
+function showPersonalClues(char) {
+  const initialId = state.initial[char];
+  const initialClue = CLUES.find(c => c.id === initialId);
+  const collectedClues = CLUES.filter(c => state.collected[c.id] === char);
+  const allClues = [];
+  if (initialClue) allClues.push({ clue: initialClue, type: 'initial' });
+  collectedClues.forEach(c => allClues.push({ clue: c, type: 'collected' }));
+
+  openModal();
+  document.getElementById('modal-title').textContent = `${char}의 단서 목록`;
+
+  if (allClues.length === 0) {
+    document.getElementById('modal-desc').innerHTML = `<p style="font-size:13px;color:var(--muted);">아직 수집한 단서가 없습니다.</p>`;
+  } else {
+    const cardsHTML = allClues.map(({ clue, type }) => {
+      const drugHTML = clue.drug ? `<div style="margin-top:8px;font-size:10px;color:var(--accent2);letter-spacing:1px;">💊 약물 카드</div>` : '';
+      const badge = type === 'initial'
+        ? `<span style="font-size:10px;background:rgba(124,106,255,0.15);color:var(--accent2);padding:1px 7px;border-radius:20px;margin-left:6px;">최초 소지</span>`
+        : `<span style="font-size:10px;background:rgba(34,197,94,0.15);color:var(--green2);padding:1px 7px;border-radius:20px;margin-left:6px;">획득</span>`;
+      return `
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:14px 16px;margin-bottom:10px;">
+          <div style="font-size:11px;color:var(--dim);margin-bottom:6px;">${clue.owner} · ${clue.slot} ${badge}</div>
+          <div style="font-size:14px;font-weight:500;margin-bottom:8px;font-family:'Noto Serif KR',serif;">${clue.name}</div>
+          <div style="font-size:12px;color:#bbbbd0;line-height:1.8;">${clue.desc}</div>
+          ${drugHTML}
+          ${getHiddenContentHTML(clue)}
+        </div>
+      `;
+    }).join('');
+    document.getElementById('modal-desc').innerHTML = `<div style="max-height:60vh;overflow-y:auto;padding-right:4px;">${cardsHTML}</div>`;
+  }
+
+  document.getElementById('modal-collector').style.display = 'none';
+  document.getElementById('modal-confirm-btn').textContent = '닫기';
+  document.getElementById('modal-confirm-btn').className = 'modal-confirm';
+  document.getElementById('modal-confirm-btn').onclick = () => closeModal();
+}
+
+
+function askReset() {
+  showModal({
+    title: '새 게임 초기화',
+    desc: '모든 단서 선택 기록이 삭제됩니다.<br>이 작업은 되돌릴 수 없습니다. 계속하시겠습니까?',
+    confirmText: '초기화',
+    danger: true,
+    onConfirm: () => {
+      state = { initial: {}, collected: {}, drugRevealed: [], drugUsed: [] };
+      saveState();
+    }
+  });
+}
+
+// ===== INIT =====
+// (onValue 리스너가 최초 1회 자동으로 render() 호출함)
+
+// type="module" 스크립트에서는 함수가 전역(window)에 노출되지 않아
+// HTML의 onclick="..." 인라인 핸들러가 작동하지 않으므로 명시적으로 등록
+window.closeModal = closeModal;
+window.askReset = askReset;
+window.abandonClue = abandonClue;
+window.openPersonalView = openPersonalView;
+window.selectChoice = selectChoice;
+window.selectCollector = selectCollector;
+window.showClueActions = showClueActions;
+window.showTransferModal = showTransferModal;
+window.useDrug = useDrug;
+window.confirmPersonalView = confirmPersonalView;
+window.showInitialActions = showInitialActions;
+window.useDrugFromInitial = useDrugFromInitial;
+window.CLUES = CLUES;
+window.doExplore = doExplore;
+window.checkExplorePw = checkExplorePw;
+window.resetPattern = resetPattern;
+window.submitPattern = submitPattern;
+window.initPattern = initPattern;
+</script>
+<footer style="margin-top:80px;padding:32px 24px;border-top:1px solid #2a2a3e;text-align:center;font-size:10px;color:#44445a;line-height:2;letter-spacing:0.3px;">본 작품 《폐쇄병동: 잠들지 않는 밤》의 시나리오, 텍스트, 시스템 구성 및 디자인을 포함한 모든 저작권은 원저작자 오냥냥에게 있습니다.<br>저작권법의 보호를 받는 저작물이므로, 저작권자의 서면 동의 없는 무단 복제, 전재, 배포, 수정 및 상업적 이용(유료 스트리밍, 상업 매장 내 무단 사용)등을 절대 금합니다.<br><br>스포일러 주의: 머더 미스터리 장르 특성상, 본 작품은 단 한 번만 플레이할 수 있는 일회성 게임입니다.<br>아직 플레이하지 않은 다른 분들의 온전한 재미를 위해 게임 내 핵심 기믹, 진범의 정체, 반전 등의 스포일러 요소를<br>인터넷, SNS, 공개 커뮤니티 등에 노출하지 않도록 자제 부탁드립니다.<br><br>Copyright 2026. 오냥냥 All rights reserved.<br><br>문의 younakim.kr01@gmail.com</footer>
+</body>
+</html>
